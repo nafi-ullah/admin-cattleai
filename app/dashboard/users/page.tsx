@@ -6,8 +6,8 @@ import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 
 const initialUsers = [
-  { id: 1, username: "user1", whatsapp: "+1234567890", subscriptionEnd: "2023-12-31", credits: 100, status: "Active" },
-  { id: 2, username: "user2", whatsapp: "+0987654321", subscriptionEnd: "2023-11-30", credits: 50, status: "Inactive" },
+  { id: 1, username: "user1", whatsapp: "+1234567890", subscriptionEnd: "2023-12-31", credits: 100, status: "Admin" },
+  { id: 2, username: "user2", whatsapp: "+0987654321", subscriptionEnd: "2023-11-30", credits: 50, status: "User" },
   // Add more users as needed
 ]
 
@@ -24,7 +24,7 @@ export default function UsersPage() {
   const toggleStatus = (id: number) => {
     setUsers(
       users.map((user) =>
-        user.id === id ? { ...user, status: user.status === "Active" ? "Inactive" : "Active" } : user,
+        user.id === id ? { ...user, status: user.status === "Admin" ? "User" : "Admin" } : user,
       ),
     )
   }
