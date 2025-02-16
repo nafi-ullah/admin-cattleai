@@ -1,78 +1,178 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { useEffect, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { BACKEND_URL } from "@/app/utils/constants";
+import { FaFilePdf } from "react-icons/fa";
 
-const initialUsers = [
-  { id: 1, username: "user1", whatsapp: "+1234567890", subscriptionEnd: "2023-12-31", credits: 100, status: "Admin" },
-  { id: 2, username: "user2", whatsapp: "+0987654321", subscriptionEnd: "2023-11-30", credits: 50, status: "User" },
-  // Add more users as needed
-]
+import {
+  WhatsappShareButton,
+  EmailShareButton,
+  WhatsappIcon,
+  EmailIcon,
+} from "react-share";
+
+// Replace with actual backend URL
+type User = {
+  userid: string;
+  full_name: string;
+  credit: number;
+  user_type: string;
+  email: string;
+};
 
 export default function UsersPage() {
-  const [users, setUsers] = useState(initialUsers)
-  const [filter, setFilter] = useState("")
+  const [users, setUsers] = useState<User[]>([]);
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [creditModalOpen, setCreditModalOpen] = useState<boolean>(false);
+  const [userTypeModalOpen, setUserTypeModalOpen] = useState<boolean>(false);
+  const [creditAmount, setCreditAmount] = useState<number | string>('');
+  const [paymentSlipLink, setPaymentSlipLink] = useState<string | null>(null);
 
-  const filteredUsers = users.filter(
-    (user) =>
-      user.username.toLowerCase().includes(filter.toLowerCase()) ||
-      user.status.toLowerCase().includes(filter.toLowerCase()),
-  )
+  const handleFetchUser = async () => {
+    fetch(`${BACKEND_URL}/users`)
+    .then((res) => res.json())
+    .then((data: User[]) => setUsers(data))
+    .catch((err) => console.error("Error fetching users:", err));
+  };
 
-  const toggleStatus = (id: number) => {
-    setUsers(
-      users.map((user) =>
-        user.id === id ? { ...user, status: user.status === "Admin" ? "User" : "Admin" } : user,
-      ),
-    )
-  }
+  useEffect(() => {
+    handleFetchUser();
+  }, []);
 
-  const addCredits = (id: number, amount: number) => {
-    setUsers(users.map((user) => (user.id === id ? { ...user, credits: user.credits + amount } : user)))
-  }
+  const handleAddCredit = async () => {
+    if (!selectedUser || !creditAmount) return;
+
+    const userId = selectedUser.userid;
+    const requestData = {
+      user_id: userId,
+      request_credit: creditAmount,
+      status: "credited",
+    };
+
+    try {
+      const response = await fetch(`${BACKEND_URL}/credit-history`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(requestData),
+      });
+
+      const data = await response.json();
+      setPaymentSlipLink(data.paymentslip_link);
+      
+    } catch (error) {
+      console.error("Error adding credit:", error);
+    }
+  };
+
+
+
 
   return (
     <div className="space-y-4">
-      <Input
-        placeholder="Filter users..."
-        value={filter}
-        onChange={(e) => setFilter(e.target.value)}
-        className="max-w-sm"
-      />
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Username</TableHead>
-            <TableHead>WhatsApp</TableHead>
-            <TableHead>Subscription End</TableHead>
-            <TableHead>Credits</TableHead>
-            <TableHead>Status</TableHead>
+            <TableHead>User ID</TableHead>
+            <TableHead>Full Name</TableHead>
+            <TableHead>Credit</TableHead>
+            <TableHead>User Type</TableHead>
+            <TableHead>Email</TableHead>
             <TableHead>Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {filteredUsers.map((user) => (
-            <TableRow key={user.id}>
-              <TableCell>{user.username}</TableCell>
-              <TableCell>{user.whatsapp}</TableCell>
-              <TableCell>{user.subscriptionEnd}</TableCell>
-              <TableCell>{user.credits}</TableCell>
-              <TableCell>{user.status}</TableCell>
+          {users.map((user) => (
+            <TableRow key={user.userid}>
+              <TableCell>{user.userid}</TableCell>
+              <TableCell>{user.full_name}</TableCell>
+              <TableCell>{user.credit}</TableCell>
+              <TableCell>{user.user_type}</TableCell>
+              <TableCell>{user.email}</TableCell>
               <TableCell>
-                <Button onClick={() => toggleStatus(user.id)} variant="outline" className="mr-2">
-                  Toggle Status
+                <Button
+                  variant="outline"
+                  className="mr-2"
+                  onClick={() => {
+                    setSelectedUser(user);
+                    setCreditModalOpen(true);
+                  }}
+                >
+                  Add Credit
                 </Button>
-                <Button onClick={() => addCredits(user.id, 10)} variant="outline">
-                  Add 10 Credits
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setSelectedUser(user);
+                    setUserTypeModalOpen(true);
+                  }}
+                >
+                  Change User Type
                 </Button>
               </TableCell>
             </TableRow>
           ))}
         </TableBody>
       </Table>
-    </div>
-  )
-}
 
+      {/* Add Credit Modal */}
+      {selectedUser && (
+        <Dialog open={creditModalOpen} onOpenChange={(open) => {
+          setCreditModalOpen(open);
+          if (!open) {
+            setPaymentSlipLink(null); // Clear the paymentSlipLink when the modal is closed
+          }
+        }}>
+          <DialogContent>
+            <DialogTitle>Add credit to User: {selectedUser.full_name}</DialogTitle>
+            <div className="space-y-4">
+            {paymentSlipLink && (<div>
+                <div className="my-4">
+              <input
+                type="number"
+                value={creditAmount}
+                onChange={(e) => setCreditAmount(e.target.value)}
+                className="border p-2"
+                placeholder="Enter credit amount"
+              />
+              </div>
+              <Button onClick={handleAddCredit}>Add Credit</Button>
+              </div>)}
+              {paymentSlipLink && (
+                <div className="">
+                  <div className="font-semibold text-lg  mt-6 mb-2">Download</div>
+                  <a href={paymentSlipLink} target="_blank" rel="noopener noreferrer" className="py-4">
+                    <FaFilePdf size={64} />
+                  </a>
+                  <div className="font-semibold text-lg  mt-6">Share via</div>
+                  <div className="py-2">
+                  <WhatsappShareButton url={paymentSlipLink} title="Check out your payment receipt!">
+                    <WhatsappIcon size={32} round className="mr-3"/>
+                  </WhatsappShareButton>
+                  <EmailShareButton url={paymentSlipLink} subject="Payment Receipt" body="Here is my payment receipt.">
+                    <EmailIcon size={32} round />
+                  </EmailShareButton>
+                  </div>
+                </div>
+              )}
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {/* Change User Type Modal */}
+      {selectedUser && (
+        <Dialog open={userTypeModalOpen} onOpenChange={setUserTypeModalOpen}>
+          <DialogContent>
+            <DialogTitle>Change {selectedUser.user_type} to User ID: {selectedUser.userid}</DialogTitle>
+            <p>User ID: {selectedUser.userid}</p>
+          </DialogContent>
+        </Dialog>
+      )}
+    </div>
+  );
+}
