@@ -50,7 +50,7 @@ export default function LoginPage() {
               <div className="flex flex-col space-y-1.5">
                 <Input
                   id="username"
-                  placeholder="Username"
+                  placeholder="Email"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                 />
