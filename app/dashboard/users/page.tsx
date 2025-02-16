@@ -93,6 +93,7 @@ export default function UsersPage() {
         .then((response) => response.json())
         .then((data) => {
           // Handle success, e.g., close modal or show success message
+       
           setUserTypeModalOpen(false);
         })
         .catch((error) => {
