@@ -48,7 +48,7 @@ export default function CreditRequestsPage() {
           <TableRow>
             <TableHead>User Full Name</TableHead>
             <TableHead>Request Time</TableHead>
-            <TableHead>Requested Credit</TableHead>
+            <TableHead>Credit</TableHead>
             <TableHead>Status</TableHead>
             <TableHead>Actions</TableHead>
           </TableRow>

@@ -5,19 +5,35 @@ import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
+import toast from "react-hot-toast"
 
 export default function LoginPage() {
   const [username, setUsername] = useState("")
   const [password, setPassword] = useState("")
   const router = useRouter()
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
-    // Here you would typically validate the credentials against your backend
-    if (username === "admin" && password === "password") {
-      router.push("/dashboard")
-    } else {
-      alert("Invalid credentials")
+
+    try {
+      const response = await fetch("/api/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ username, password }),
+      })
+
+      const result = await response.json()
+
+      if (result.success) {
+        toast.success("Login successful! Redirecting to dashboard...")
+        router.push("/dashboard")
+      } else {
+        toast.error(result.message || "Invalid credentials")
+      }
+    } catch (error) {
+      toast.error("An error occurred. Please try again later.")
     }
   }
 
@@ -58,4 +74,3 @@ export default function LoginPage() {
     </div>
   )
 }
-

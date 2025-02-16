@@ -207,7 +207,7 @@ export default function UsersPage() {
         <Dialog open={userTypeModalOpen} onOpenChange={setUserTypeModalOpen}>
   <DialogContent>
     <DialogTitle>
-      Change {selectedUser.user_type} to User ID: {selectedUser.userid}
+      Change user type of {selectedUser.user_type} . User ID: {selectedUser.userid}
     </DialogTitle>
     
     {/* Dynamic subtitle based on user type */}
