@@ -63,11 +63,49 @@ export default function UsersPage() {
 
       const data = await response.json();
       setPaymentSlipLink(data.paymentslip_link);
-      
+      handleFetchUser();
     } catch (error) {
       console.error("Error adding credit:", error);
     }
   };
+
+
+  const handChangeUserType = async () => {
+    if (!selectedUser ) return;
+
+    const userId = selectedUser.userid;
+    // const requestData = {
+    //   user_id: userId,
+    //   request_credit: creditAmount,
+    //   status: "credited",
+    // };
+
+    try {
+      fetch(`${BACKEND_URL}/update_user_type/${userId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          user_type: selectedUser.user_type === "user" ? "admin" : "user",
+        }),
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          // Handle success, e.g., close modal or show success message
+          setUserTypeModalOpen(false);
+        })
+        .catch((error) => {
+          console.error("Error updating user type:", error);
+        });
+      handleFetchUser();
+    } catch (error) {
+      console.error("Error adding credit:", error);
+    }
+  };
+
+
+
 
 
 
@@ -130,7 +168,7 @@ export default function UsersPage() {
           <DialogContent>
             <DialogTitle>Add credit to User: {selectedUser.full_name}</DialogTitle>
             <div className="space-y-4">
-            {paymentSlipLink && (<div>
+            {!paymentSlipLink && (<div>
                 <div className="my-4">
               <input
                 type="number"
@@ -167,11 +205,32 @@ export default function UsersPage() {
       {/* Change User Type Modal */}
       {selectedUser && (
         <Dialog open={userTypeModalOpen} onOpenChange={setUserTypeModalOpen}>
-          <DialogContent>
-            <DialogTitle>Change {selectedUser.user_type} to User ID: {selectedUser.userid}</DialogTitle>
-            <p>User ID: {selectedUser.userid}</p>
-          </DialogContent>
-        </Dialog>
+  <DialogContent>
+    <DialogTitle>
+      Change {selectedUser.user_type} to User ID: {selectedUser.userid}
+    </DialogTitle>
+    
+    {/* Dynamic subtitle based on user type */}
+    {selectedUser.user_type === "user" ? (
+      <>
+        <p>This user is currently a "User". To change this to an "Admin", you need to confirm the following:</p>
+        <p className="text-red-500">Warning: Admins can access the dashboard and necessary data.</p>
+      </>
+    ) : (
+      <>
+        <p>This user is currently an "Admin". To change this to a "User", you need to confirm the following:</p>
+        <p className="text-red-500">Warning: This user won't be able to access the dashboard anymore.</p>
+      </>
+    )}
+
+    <Button
+      onClick={handChangeUserType}
+    >
+      Change User Type
+    </Button>
+  </DialogContent>
+</Dialog>
+
       )}
     </div>
   );
