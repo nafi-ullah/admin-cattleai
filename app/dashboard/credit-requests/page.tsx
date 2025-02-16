@@ -3,10 +3,17 @@
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { FaFilePdf } from "react-icons/fa"
+import { WhatsappShareButton, WhatsappIcon } from "react-share"
+import { EmailShareButton, EmailIcon } from "react-share"
 import { BACKEND_URL } from "@/app/utils/constants"
+
+
 
 export default function CreditRequestsPage() {
   const [requests, setRequests] = useState<any[]>([])
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [selectedPaymentSlip, setSelectedPaymentSlip] = useState<string | null>(null)
 
   // Fetch the data on component mount
   useEffect(() => {
@@ -14,7 +21,7 @@ export default function CreditRequestsPage() {
       try {
         const response = await fetch(`${BACKEND_URL}/credit-history-all`)
         const data = await response.json()
-        setRequests(data)
+        setRequests(data.reverse())
       } catch (error) {
         console.error("Error fetching credit history:", error)
       }
@@ -22,17 +29,20 @@ export default function CreditRequestsPage() {
     fetchRequests()
   }, [])
 
-  const handleDownload = (paymentslipLink: string) => {
-    const link = document.createElement("a")
-    link.href = paymentslipLink
-    link.download = "payment-slip"
-    link.click()
+  const handleDownloadClick = (paymentslipLink: string) => {
+    setSelectedPaymentSlip(paymentslipLink)
+    setIsModalOpen(true)
+  }
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false)
+    setSelectedPaymentSlip(null)
   }
 
   return (
-    <div >
+    <div>
       <h2 className="text-2xl font-bold mb-4">Credit Requests</h2>
-      <div className="max-h-[70vh] overflow-y-scroll w-full">
+      <div className="max-h-[70vh] overflow-y-scroll">
       <Table>
         <TableHeader>
           <TableRow>
@@ -51,8 +61,8 @@ export default function CreditRequestsPage() {
               <TableCell>{request.request_credit}</TableCell>
               <TableCell>{request.status}</TableCell>
               <TableCell>
-                <Button onClick={() => handleDownload(request.paymentslip_link)} variant="outline" className="mr-2">
-                  Download Payment Slip
+                <Button onClick={() => handleDownloadClick(request.paymentslip_link)} variant="outline" className="mr-2">
+                  Payment Slip
                 </Button>
               </TableCell>
             </TableRow>
@@ -60,6 +70,32 @@ export default function CreditRequestsPage() {
         </TableBody>
       </Table>
       </div>
+
+      {isModalOpen && selectedPaymentSlip && (
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex justify-center items-center z-50">
+          <div className="bg-white p-6 rounded-lg w-96">
+            <h2 className="text-xl font-semibold mb-4">Download</h2>
+            <div className="font-semibold text-lg mt-6 mb-2">Download PDF</div>
+            <a href={selectedPaymentSlip} target="_blank" rel="noopener noreferrer" className="py-4">
+              <FaFilePdf size={64} />
+            </a>
+            <div className="font-semibold text-lg mt-6">Share via</div>
+            <div className="py-2">
+              <WhatsappShareButton url={selectedPaymentSlip} title="Check out your payment receipt!">
+                <WhatsappIcon size={32} round className="mr-3" />
+              </WhatsappShareButton>
+              <EmailShareButton url={selectedPaymentSlip} subject="Payment Receipt" body="Here is my payment receipt.">
+                <EmailIcon size={32} round />
+              </EmailShareButton>
+            </div>
+            <div className="mt-4">
+              <Button onClick={handleCloseModal} variant="outline" className="w-full">
+                Close
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
