@@ -14,18 +14,21 @@ export default function CreditRequestsPage() {
   const [requests, setRequests] = useState<any[]>([])
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [selectedPaymentSlip, setSelectedPaymentSlip] = useState<string | null>(null)
+  const [approvalModalOpen, setApprovalModalOpen] = useState(false)
+  const [selectedCreditHistoryId, setSelectedCreditHistoryId] = useState<string | null>(null)
 
   // Fetch the data on component mount
-  useEffect(() => {
-    const fetchRequests = async () => {
-      try {
-        const response = await fetch(`${BACKEND_URL}/credit-history-all`)
-        const data = await response.json()
-        setRequests(data.reverse())
-      } catch (error) {
-        console.error("Error fetching credit history:", error)
-      }
+  const fetchRequests = async () => {
+    try {
+      const response = await fetch(`${BACKEND_URL}/credit-history-all`)
+      const data = await response.json()
+      setRequests(data.reverse())
+    } catch (error) {
+      console.error("Error fetching credit history:", error)
     }
+  }
+  useEffect(() => {
+
     fetchRequests()
   }, [])
 
@@ -37,6 +40,42 @@ export default function CreditRequestsPage() {
   const handleCloseModal = () => {
     setIsModalOpen(false)
     setSelectedPaymentSlip(null)
+  }
+
+  const handleOpenApprovalModal = (creditHistoryId: string) => {
+    setSelectedCreditHistoryId(creditHistoryId)
+    setApprovalModalOpen(true)
+  }
+
+  const handleCloseApprovalModal = () => {
+    setApprovalModalOpen(false)
+    setSelectedCreditHistoryId(null)
+  }
+
+  const handleConfirmApproval = async () => {
+    if (!selectedCreditHistoryId) return
+
+    try {
+      const response = await fetch(`${BACKEND_URL}/approve-request`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ creditHistoryId: selectedCreditHistoryId })
+      })
+
+      if (response.ok) {
+        // alert("Request approved successfully!")
+        fetchRequests();
+      } else {
+        alert("Failed to approve request.")
+      }
+    } catch (error) {
+      console.error("Error approving request:", error)
+      alert("An error occurred while approving the request.")
+    } finally {
+      handleCloseApprovalModal()
+    }
   }
 
   return (
@@ -61,9 +100,15 @@ export default function CreditRequestsPage() {
               <TableCell>{request.request_credit}</TableCell>
               <TableCell>{request.status}</TableCell>
               <TableCell>
-                <Button onClick={() => handleDownloadClick(request.paymentslip_link)} variant="outline" className="mr-2">
-                  Payment Slip
-                </Button>
+              {request.status === "pending" ? (
+                    <Button onClick={() => handleOpenApprovalModal(request.creditHistoryId)} variant="outline" className="mr-2">
+                      Approve Request
+                    </Button>
+                  ) : (
+                    <Button onClick={() => handleDownloadClick(request.paymentslip_link)} variant="outline" className="mr-2">
+                      Payment Slip
+                    </Button>
+                  )}
               </TableCell>
             </TableRow>
           ))}
@@ -91,6 +136,26 @@ export default function CreditRequestsPage() {
             <div className="mt-4">
               <Button onClick={handleCloseModal} variant="outline" className="w-full">
                 Close
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+
+{approvalModalOpen && (
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex justify-center items-center z-50">
+          <div className="bg-white p-6 rounded-lg w-96">
+            <h2 className="text-xl font-semibold mb-4">Confirm Approval</h2>
+            <p className="mb-4">
+              Approving this request will grant the requested credit to the user. This action cannot be undone.
+            </p>
+            <div className="flex justify-end gap-2">
+              <Button onClick={handleCloseApprovalModal} variant="outline">
+                Cancel
+              </Button>
+              <Button onClick={handleConfirmApproval} variant="destructive">
+                Confirm Approval
               </Button>
             </div>
           </div>
