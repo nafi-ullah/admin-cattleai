@@ -1,7 +1,7 @@
 "use client"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Home, Users, CreditCard, LogOut } from "lucide-react"
+import { Home, Users, CreditCard, LogOut, ChefHat } from "lucide-react"
 import {
   Sidebar,
   SidebarContent,
@@ -25,11 +25,12 @@ export default function DashboardLayout({
     { icon: Home, label: "Dashboard", href: "/dashboard" },
     { icon: Users, label: "Users", href: "/dashboard/users" },
     { icon: CreditCard, label: "Credit Requests", href: "/dashboard/credit-requests" },
+    { icon: ChefHat, label: "Cattles", href: "/dashboard/cattles" }
   ]
 
   return (
     <SidebarProvider>
-      <div className="flex h-screen">
+      <div className="flex h-screen w-screen">
         <Sidebar>
           <SidebarHeader>
             <h2 className="text-xl font-bold">Admin Dashboard</h2>
@@ -48,6 +49,7 @@ export default function DashboardLayout({
               ))}
             </SidebarMenu>
           </SidebarContent>
+          
           <SidebarFooter>
             <SidebarMenu>
               <SidebarMenuItem>

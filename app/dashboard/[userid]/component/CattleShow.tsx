@@ -75,28 +75,32 @@ export default function CattleShow({ cattles }: CattleShowProps) {
                     <p><strong>Date:</strong> {wp.date}</p>
                     <p><strong>Weight:</strong> {wp.weight.toFixed(2)} kg</p>
                     <div className="flex gap-2 mt-2">
-                      <img
-                        src={wp.cattle_side_url}
-                        alt="Side view"
-                        className="rounded-md w-1/2 cursor-pointer"
-                        onClick={() =>
-                          setSelectedImage({
-                            url: wp.cattle_side_url,
-                            alt: "Side view",
-                          })
-                        }
-                      />
-                      <img
-                        src={wp.cattle_rear_url}
-                        alt="Rear view"
-                        className="rounded-md w-1/2 cursor-pointer"
-                        onClick={() =>
-                          setSelectedImage({
-                            url: wp.cattle_rear_url,
-                            alt: "Rear view",
-                          })
-                        }
-                      />
+                      <div className="w-1/2 h-64 flex items-center justify-center bg-gray-100 rounded-md overflow-hidden cursor-pointer">
+                        <img
+                          src={wp.cattle_side_url}
+                          alt="Side view"
+                          className="object-contain w-full h-full"
+                          onClick={() =>
+                            setSelectedImage({
+                              url: wp.cattle_side_url,
+                              alt: "Side view",
+                            })
+                          }
+                        />
+                      </div>
+                      <div className="w-1/2 h-64  flex items-center justify-center bg-gray-100 rounded-md overflow-hidden cursor-pointer">
+                        <img
+                          src={wp.cattle_rear_url}
+                          alt="Rear view"
+                          className="object-contain w-full h-full"
+                          onClick={() =>
+                            setSelectedImage({
+                              url: wp.cattle_rear_url,
+                              alt: "Rear view",
+                            })
+                          }
+                        />
+                      </div>
                     </div>
                   </div>
                 ))}
