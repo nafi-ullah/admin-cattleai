@@ -13,6 +13,7 @@ import {
   WhatsappIcon,
   EmailIcon,
 } from "react-share";
+import { useRouter } from "next/navigation";
 
 // Replace with actual backend URL
 type User = {
@@ -30,7 +31,7 @@ export default function UsersPage() {
   const [userTypeModalOpen, setUserTypeModalOpen] = useState<boolean>(false);
   const [creditAmount, setCreditAmount] = useState<number | string>('');
   const [paymentSlipLink, setPaymentSlipLink] = useState<string | null>(null);
-
+  const router = useRouter();
   const handleFetchUser = async () => {
     fetch(`${BACKEND_URL}/users`)
     .then((res) => res.json())
@@ -128,12 +129,16 @@ export default function UsersPage() {
           {users.map((user) => (
             <TableRow key={user.userid}>
               <TableCell>{user.userid}</TableCell>
-              <TableCell>{user.full_name}</TableCell>
+              <TableCell>
+                <button onClick={()=>{
+                    router.push(`${user.userid}`)
+                }}>{user.full_name}</button>
+                </TableCell>
               <TableCell>{user.credit}</TableCell>
               <TableCell>{user.user_type}</TableCell>
               <TableCell>{user.email}</TableCell>
               <TableCell>
-                <Button
+                <Button //make this button color red
                   variant="outline"
                   className="mr-2"
                   onClick={() => {

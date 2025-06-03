@@ -38,4 +38,4 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/bui
 
 
 docker build -t cattle-frontend .
-docker run --env-file .env -d -p 3000:3000 cattle-frontend
+docker run -d -p 3000:3000 cattle-frontend
